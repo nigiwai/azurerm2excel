@@ -33,3 +33,7 @@ azure環境を構築したtfstateファイルからパラメタシート（Excel
 python azurerm2excel.py <path_to_tfstate_file> <description_folder1> [<description_folder2> ...]
 python .\azurerm2excel.py .\tfstate\terraform.tfstate D:\git\terra2excel\json\azurerm_4.14.0 D:\git\terra2excel\json\azuread_3.1.0
 ```
+
+## ライセンス
+
+MITライセンス
