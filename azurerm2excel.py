@@ -643,4 +643,4 @@ if __name__ == "__main__":
 
     process_tfstate(
         tfstate_file, description_folders, output_folder
-    )  # description_folder を description_folders に変更
+    )  
