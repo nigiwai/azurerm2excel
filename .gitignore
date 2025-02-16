@@ -1,5 +1,7 @@
-*.tfstate
-/tfstate/*
+tfstate/
 venv/
-/terraoutput/*
+terraoutput/
+json/
+*.tfstate
 *.xlsx
+*.json
