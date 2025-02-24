@@ -116,17 +116,18 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                     # Add header row for security_rule sheet
                     ws_security_rule.append(
                         [
-                            "Rule Index",
-                            "Direction",
-                            "Priority",
-                            "Access",
-                            "Name",
-                            "Description",
-                            "Destination Address Prefix",
-                            "Destination Port Range",
-                            "Protocol",
-                            "Source Address Prefix",
-                            "Source Port Range",
+                            "rule_index",
+                            "direction",
+                            "priority",
+                            "access",
+                            "name",
+                            "description",
+                            "destination_address_prefix",
+                            "destination_port_range",
+                            "destination_port_ranges",
+                            "protocol",
+                            "source_address_prefix",
+                            "source_port_range",
                         ]
                     )
 
@@ -149,7 +150,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                     )
 
                     for rule_index, rule_attrs in sorted_rules:
-                        row = [f"security_rule[{rule_index}]"]
+                        row = [f"security_rule{rule_index}"]
                         for key in [
                             "security_rule.direction",
                             "security_rule.priority",
@@ -158,6 +159,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                             "security_rule.description",
                             "security_rule.destination_address_prefix",
                             "security_rule.destination_port_range",
+                            "security_rule.destination_port_ranges",
                             "security_rule.protocol",
                             "security_rule.source_address_prefix",
                             "security_rule.source_port_range",
@@ -215,27 +217,28 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                     # Add header row for application_rule_collection sheet
                     ws_appcol.append(
                         [
-                            "Collection Index",
-                            "Name",
-                            "Priority",
-                            "Action",
+                            "collection_index",
+                            "name",
+                            "priority",
+                            "action",
                         ]
                     )
                     ws_appcolrule.append(
                         [
-                            "Rule Index(=Collection Index_Rule Index)",
-                            "Name",
-                            "Description",
-                            "Destination Addresses",
-                            "Destination FQDN Tags",
-                            "Destination FQDNs",
-                            "Destination URLs",
-                            "Protocols Port",
-                            "Protocols Type",
-                            "Source Addresses",
-                            "Source IP Groups",
-                            "Terminate TLS",
-                            "Web Categories",
+                            "rule_Index",
+                            "name",
+                            "description",
+                            "destination_addresses",
+                            "destination_fqdn_tags",
+                            "destination_fqdns",
+                            "destination_urls",
+                            "http_headers",
+                            "protocols_port",
+                            "protocols_type",
+                            "source_addresses",
+                            "source_ip_groups",
+                            "terminate_tls",
+                            "web_categories",
                         ]
                     )
 
@@ -267,7 +270,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                     )
 
                     for app_col_index, app_col_attrs in sorted_appcols:
-                        row = [f"application_rule_collection[{app_col_index}]"]
+                        row = [f"application_rule_collection{app_col_index}"]
                         for key in [
                             "application_rule_collection.name",
                             "application_rule_collection.priority",
@@ -281,7 +284,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                         app_col_rule_attrs,
                     ) in appcolrule_dict.items():
                         row = [
-                            f"application_rule_collection.rule[{app_col_rule_index}]"
+                            f"application_rule_collection.rule{app_col_rule_index}"
                         ]
                         for key in [
                             "application_rule_collection.rule.name",
@@ -290,6 +293,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                             "application_rule_collection.rule.destination_fqdn_tags",
                             "application_rule_collection.rule.destination_fqdns",
                             "application_rule_collection.rule.destination_urls",
+                            "application_rule_collection.rule.http_headers",
                             "application_rule_collection.rule.protocols.port",
                             "application_rule_collection.rule.protocols.type",
                             "application_rule_collection.rule.source_addresses",
@@ -325,24 +329,24 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                     # Add header row for network_rule_collection sheet
                     ws_netcol.append(
                         [
-                            "Collection Index",
-                            "Name",
-                            "Priority",
-                            "Action",
+                            "collection_index",
+                            "name",
+                            "priority",
+                            "action",
                         ]
                     )
                     ws_netcolrule.append(
                         [
-                            "Rule Index(=Collection Index_Rule Index)",
-                            "Name",
-                            "Description",
-                            "Destination Addresses",
-                            "Destination FQDNs",
-                            "Destination IP Groups",
-                            "Destination Ports",
-                            "Protocols",
-                            "Source Addresses",
-                            "Source IP Groups",
+                            "rule_Index",
+                            "name",
+                            "description",
+                            "destination_addresses",
+                            "destination_fqdns",
+                            "destination_ip_groups",
+                            "destination_ports",
+                            "protocols",
+                            "source_addresses",
+                            "source_ip_groups",
                         ]
                     )
 
@@ -375,7 +379,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                     )
 
                     for net_col_index, net_col_attrs in sorted_netcols:
-                        row = [f"network_rule_collection[{net_col_index}]"]
+                        row = [f"network_rule_collection{net_col_index}"]
                         for key in [
                             "network_rule_collection.name",
                             "network_rule_collection.priority",
@@ -389,7 +393,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                         net_col_rule_attrs,
                     ) in netcolrule_dict.items():
                         row = [
-                            f"net_rule_collection.rule[{net_col_rule_index}]"
+                            f"net_rule_collection.rule{net_col_rule_index}"
                         ]
                         for key in [
                             "network_rule_collection.rule.name",
@@ -430,25 +434,25 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                     # Add header row for nat_rule_collection sheet
                     ws_natcol.append(
                         [
-                            "Collection Index",
-                            "Name",
-                            "Priority",
-                            "Action",
+                            "collection_index",
+                            "name",
+                            "priority",
+                            "action",
                         ]
                     )
                     ws_natcolrule.append(
                         [
-                            "Rule Index(=Collection Index_Rule Index)",
-                            "Name",
-                            "Description",
-                            "Destination Address",
-                            "Destination Ports",
-                            "Protocols",
-                            "Source Addresses",
-                            "Source IP Groups",
-                            "Translated Address",
-                            "Translated FQDN",
-                            "Translated Port",
+                            "rule_index",
+                            "name",
+                            "description",
+                            "destination_address",
+                            "destination_ports",
+                            "protocols",
+                            "source_addresses",
+                            "source_ip_groups",
+                            "translated_address",
+                            "translated_fqdn",
+                            "translated_port",
                         ]
                     )
 
@@ -481,7 +485,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                     )
 
                     for nat_col_index, nat_col_attrs in sorted_natcols:
-                        row = [f"nat_rule_collection[{nat_col_index}]"]
+                        row = [f"nat_rule_collection{nat_col_index}"]
                         for key in [
                             "nat_rule_collection.name",
                             "nat_rule_collection.priority",
@@ -620,7 +624,7 @@ if __name__ == "__main__":
     description_folders = sys.argv[
         2:
     ]  # description_folder を description_folders に変更
-    output_folder = "terraoutput"  # 固定の出力フォルダ
+    output_folder = "output"  # 固定の出力フォルダ
 
     if not os.path.isfile(tfstate_file):
         print(f"Error: The file {tfstate_file} does not exist。")
