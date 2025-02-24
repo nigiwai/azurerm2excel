@@ -1,6 +1,6 @@
 tfstate/
 venv/
-terraoutput/
+output/
 json/
 *.tfstate
 *.xlsx
