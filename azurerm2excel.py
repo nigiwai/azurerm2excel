@@ -212,8 +212,8 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
 
                 # application_rule_collectionだけ別のシートに出力
                 if application_rule_collections:
-                    ws_appcol = wb.create_sheet(title=f"{sheet_title}_appcol")
-                    ws_appcolrule = wb.create_sheet(title=f"{sheet_title}_appcolrule")
+                    ws_appcol = wb.create_sheet(title=f"_application_rule_collection")
+                    ws_appcolrule = wb.create_sheet(title=f"_application_rule")
                     # Add header row for application_rule_collection sheet
                     ws_appcol.append(
                         [
@@ -324,8 +324,8 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
 
                 # network_rule_collectionだけ別のシートに出力
                 if network_rule_collections:
-                    ws_netcol = wb.create_sheet(title=f"{sheet_title}_netcol")
-                    ws_netcolrule = wb.create_sheet(title=f"{sheet_title}_netcolrule")
+                    ws_netcol = wb.create_sheet(title=f"_network_rule_collection")
+                    ws_netcolrule = wb.create_sheet(title=f"_network_rule")
                     # Add header row for network_rule_collection sheet
                     ws_netcol.append(
                         [
@@ -429,8 +429,8 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                 
                 # nat_rule_collectionだけ別のシートに出力
                 if nat_rule_collections:
-                    ws_natcol = wb.create_sheet(title=f"{sheet_title}_natcol")
-                    ws_natcolrule = wb.create_sheet(title=f"{sheet_title}_natcolrule")
+                    ws_natcol = wb.create_sheet(title=f"_nat_rule_collection")
+                    ws_natcolrule = wb.create_sheet(title=f"_nat_rule")
                     # Add header row for nat_rule_collection sheet
                     ws_natcol.append(
                         [
