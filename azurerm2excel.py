@@ -233,8 +233,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                             "destination_fqdns",
                             "destination_urls",
                             "http_headers",
-                            "protocols_ports",
-                            "protocols_types",
+                            "protocols",
                             "source_addresses",
                             "source_ip_groups",
                             "terminate_tls",
@@ -294,14 +293,19 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                             "application_rule_collection.rule.destination_fqdns",
                             "application_rule_collection.rule.destination_urls",
                             "application_rule_collection.rule.http_headers",
-                            "application_rule_collection.rule.protocols.port",
-                            "application_rule_collection.rule.protocols.type",
+                            "application_rule_collection.rule.protocols",
                             "application_rule_collection.rule.source_addresses",
                             "application_rule_collection.rule.source_ip_groups",
                             "application_rule_collection.rule.terminate_tls",
                             "application_rule_collection.rule.web_categories",
                         ]:
-                            row.append(str(app_col_rule_attrs.get(key, "")))
+                            if key == "application_rule_collection.rule.protocols":
+                                ports = str(app_col_rule_attrs.get("application_rule_collection.rule.protocols.port", "")).split("\n")
+                                types = str(app_col_rule_attrs.get("application_rule_collection.rule.protocols.type", "")).split("\n")
+                                protocols = [f"{type}:{port}" for port, type in zip(ports, types)]
+                                row.append("\n".join(protocols))
+                            else:
+                                row.append(str(app_col_rule_attrs.get(key, "")))
                         ws_appcolrule.append(row)
 
                     # Apply styles to the new sheet
@@ -647,4 +651,4 @@ if __name__ == "__main__":
 
     process_tfstate(
         tfstate_file, description_folders, output_folder
-    )  
+    )
