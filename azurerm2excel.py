@@ -212,9 +212,8 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
 
                 # application_rule_collectionだけ別のシートに出力
                 if application_rule_collections:
-                    ws_appcol = wb.create_sheet(title=f"apcol_{sheet_title}")
-                    ws_appcolrule = wb.create_sheet(title=f"aprule_{sheet_title}")
-                    # Add header row for application_rule_collection sheet
+                    ws_appcol = wb.create_sheet(title=f"apcols")
+                    # Add header row for collection sheet
                     ws_appcol.append(
                         [
                             "collection_index",
@@ -223,24 +222,6 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                             "action",
                         ]
                     )
-                    ws_appcolrule.append(
-                        [
-                            "rule_Index",
-                            "name",
-                            "description",
-                            "destination_addresses",
-                            "destination_fqdn_tags",
-                            "destination_fqdns",
-                            "destination_urls",
-                            "http_headers",
-                            "protocols",
-                            "source_addresses",
-                            "source_ip_groups",
-                            "terminate_tls",
-                            "web_categories",
-                        ]
-                    )
-
                     appcol_dict = defaultdict(dict)
                     appcolrule_dict = defaultdict(dict)
                     for app_col in application_rule_collections:
@@ -251,23 +232,18 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                             match = re.search(r"rule\[(\d+)\]", app_col[0])
                             if match:
                                 app_col_rule_index = match.group(1)
-                                if f"{app_col_index}_{app_col_rule_index}" in appcolrule_dict:
-                                    if app_col_key in appcolrule_dict[f"{app_col_index}_{app_col_rule_index}"]:
-                                        appcolrule_dict[f"{app_col_index}_{app_col_rule_index}"][app_col_key] = str(appcolrule_dict[f"{app_col_index}_{app_col_rule_index}"].get(app_col_key, "")) + f"\n{app_col[1]}"
-                                    else:
-                                        appcolrule_dict[f"{app_col_index}_{app_col_rule_index}"][app_col_key] = app_col[1]
+                                # グループキー：col_index_ruleIndex
+                                key = f"{app_col_index}_{app_col_rule_index}"
+                                if key in appcolrule_dict:
+                                    appcolrule_dict[key][app_col_key] = str(
+                                        appcolrule_dict[key].get(app_col_key, "")
+                                    ) + f"\n{app_col[1]}"
                                 else:
-                                    appcolrule_dict[f"{app_col_index}_{app_col_rule_index}"][app_col_key] = app_col[1]
-                            else:
-                                app_col_rule_index = None
-                    # Sort app_cols by priority
+                                    appcolrule_dict[key][app_col_key] = app_col[1]
                     sorted_appcols = sorted(
                         appcol_dict.items(),
-                        key=lambda x: int(
-                            x[1].get("application_rule_collection.priority", 0)
-                        ),
+                        key=lambda x: int(x[1].get("application_rule_collection.priority", 0)),
                     )
-
                     for app_col_index, app_col_attrs in sorted_appcols:
                         row = [f"application_rule_collection{app_col_index}"]
                         for key in [
@@ -278,13 +254,33 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                             row.append(str(app_col_attrs.get(key, "")))
                         ws_appcol.append(row)
 
-                    for (
-                        app_col_rule_index,
-                        app_col_rule_attrs,
-                    ) in appcolrule_dict.items():
-                        row = [
-                            f"application_rule_collection.rule{app_col_rule_index}"
-                        ]
+                    # apruleシートをcol_indexごとに分ける
+                    app_rule_sheets = {}
+                    for rule_key, rule_attrs in appcolrule_dict.items():
+                        ap_col_index, ap_rule_index = rule_key.split("_", 1)
+                        if ap_col_index not in app_rule_sheets:
+                            # collectionのpriorityを取得してシート名に含める
+                            col_name = appcol_dict[ap_col_index].get("application_rule_collection.name", "")
+                            priority = appcol_dict[ap_col_index].get("application_rule_collection.priority", "0")
+                            app_rule_sheets[ap_col_index] = wb.create_sheet(title=f"aprules_{ap_col_index}")
+                            app_rule_sheets[ap_col_index].append(
+                                [
+                                    "rule_Index",
+                                    "name",
+                                    "description",
+                                    "destination_addresses",
+                                    "destination_fqdn_tags",
+                                    "destination_fqdns",
+                                    "destination_urls",
+                                    "http_headers",
+                                    "protocols",
+                                    "source_addresses",
+                                    "source_ip_groups",
+                                    "terminate_tls",
+                                    "web_categories",
+                                ]
+                            )
+                        row = [f"application_rule{rule_key}".strip()]
                         for key in [
                             "application_rule_collection.rule.name",
                             "application_rule_collection.rule.description",
@@ -300,15 +296,14 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                             "application_rule_collection.rule.web_categories",
                         ]:
                             if key == "application_rule_collection.rule.protocols":
-                                ports = str(app_col_rule_attrs.get("application_rule_collection.rule.protocols.port", "")).split("\n")
-                                types = str(app_col_rule_attrs.get("application_rule_collection.rule.protocols.type", "")).split("\n")
-                                protocols = [f"{type}:{port}" for port, type in zip(ports, types)]
+                                ports = str(rule_attrs.get("application_rule_collection.rule.protocols.port", "")).split("\n")
+                                types = str(rule_attrs.get("application_rule_collection.rule.protocols.type", "")).split("\n")
+                                protocols = [f"{t}:{p}" for p, t in zip(ports, types) if p.strip() or t.strip()]
                                 row.append("\n".join(protocols))
                             else:
-                                row.append(str(app_col_rule_attrs.get(key, "")))
-                        ws_appcolrule.append(row)
+                                row.append(str(rule_attrs.get(key, "")).strip())
+                        app_rule_sheets[ap_col_index].append(row)
 
-                    # Apply styles to the new sheet
                     apply_styles(
                         ws_appcol,
                         header_fill,
@@ -317,19 +312,19 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                         left_alignment,
                         thin_border,
                     )
-                    apply_styles(
-                        ws_appcolrule,
-                        header_fill,
-                        header_font,
-                        default_font,
-                        left_alignment,
-                        thin_border,
-                    )
+                    for sheet in app_rule_sheets.values():
+                        apply_styles(
+                            sheet,
+                            header_fill,
+                            header_font,
+                            default_font,
+                            left_alignment,
+                            thin_border,
+                        )
 
                 # network_rule_collectionだけ別のシートに出力
                 if network_rule_collections:
-                    ws_netcol = wb.create_sheet(title=f"nwcol_{sheet_title}")
-                    ws_netcolrule = wb.create_sheet(title=f"nwrule_{sheet_title}")
+                    ws_netcol = wb.create_sheet(title=f"nwcols")
                     # Add header row for network_rule_collection sheet
                     ws_netcol.append(
                         [
@@ -339,21 +334,6 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                             "action",
                         ]
                     )
-                    ws_netcolrule.append(
-                        [
-                            "rule_Index",
-                            "name",
-                            "description",
-                            "destination_addresses",
-                            "destination_fqdns",
-                            "destination_ip_groups",
-                            "destination_ports",
-                            "protocols",
-                            "source_addresses",
-                            "source_ip_groups",
-                        ]
-                    )
-
                     netcol_dict = defaultdict(dict)
                     netcolrule_dict = defaultdict(dict)
                     for net_col in network_rule_collections:
@@ -364,24 +344,16 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                             match = re.search(r"rule\[(\d+)\]", net_col[0])
                             if match:
                                 net_col_rule_index = match.group(1)
-                                if f"{net_col_index}_{net_col_rule_index}" in netcolrule_dict:
-                                    if net_col_key in netcolrule_dict[f"{net_col_index}_{net_col_rule_index}"]:
-                                        netcolrule_dict[f"{net_col_index}_{net_col_rule_index}"][net_col_key] = str(netcolrule_dict[f"{net_col_index}_{net_col_rule_index}"][net_col_key]) + f"\n{net_col[1]}"
-                                    else:
-                                        netcolrule_dict[f"{net_col_index}_{net_col_rule_index}"][net_col_key] = net_col[1]
+                                key = f"{net_col_index}_{net_col_rule_index}"
+                                if key in netcolrule_dict:
+                                    netcolrule_dict[key][net_col_key] = str(netcolrule_dict[key].get(net_col_key, "")) + f"\n{net_col[1]}"
                                 else:
-                                    netcolrule_dict[f"{net_col_index}_{net_col_rule_index}"][net_col_key] = net_col[1]
-                            else:
-                                net_col_rule_index = None
-
+                                    netcolrule_dict[key][net_col_key] = net_col[1]
                     # Sort net_cols by priority
                     sorted_netcols = sorted(
                         netcol_dict.items(),
-                        key=lambda x: int(
-                            x[1].get("network_rule_collection.priority", 0)
-                        ),
+                        key=lambda x: int(x[1].get("network_rule_collection.priority", 0)),
                     )
-
                     for net_col_index, net_col_attrs in sorted_netcols:
                         row = [f"network_rule_collection{net_col_index}"]
                         for key in [
@@ -391,14 +363,29 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                         ]:
                             row.append(str(net_col_attrs.get(key, "")))
                         ws_netcol.append(row)
-
-                    for (
-                        net_col_rule_index,
-                        net_col_rule_attrs,
-                    ) in netcolrule_dict.items():
-                        row = [
-                            f"net_rule_collection.rule{net_col_rule_index}"
-                        ]
+                    
+                    # ----- 変更箇所: net_ruleシートを個別に作成する -----
+                    net_rule_sheets = {}
+                    for net_key, net_attrs in netcolrule_dict.items():
+                        net_col_index, net_rule_index = net_key.split("_", 1)
+                        if net_col_index not in net_rule_sheets:
+                            priority = netcol_dict[net_col_index].get("network_rule_collection.priority", "0")
+                            net_rule_sheets[net_col_index] = wb.create_sheet(title=f"nwrules_{net_col_index}_{priority}")
+                            net_rule_sheets[net_col_index].append(
+                                [
+                                    "rule_Index",
+                                    "name",
+                                    "description",
+                                    "destination_addresses",
+                                    "destination_fqdns",
+                                    "destination_ip_groups",
+                                    "destination_ports",
+                                    "protocols",
+                                    "source_addresses",
+                                    "source_ip_groups",
+                                ]
+                            )
+                        row = [f"network_rule{net_key}".strip()]
                         for key in [
                             "network_rule_collection.rule.name",
                             "network_rule_collection.rule.description",
@@ -410,10 +397,9 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                             "network_rule_collection.rule.source_addresses",
                             "network_rule_collection.rule.source_ip_groups",
                         ]:
-                            row.append(str(net_col_rule_attrs.get(key, "")))
-                        ws_netcolrule.append(row)
-
-                    # Apply styles to the new sheet
+                            row.append(str(net_attrs.get(key, "")).strip())
+                        net_rule_sheets[net_col_index].append(row)
+                    
                     apply_styles(
                         ws_netcol,
                         header_fill,
@@ -422,19 +408,20 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                         left_alignment,
                         thin_border,
                     )
-                    apply_styles(
-                        ws_netcolrule,
-                        header_fill,
-                        header_font,
-                        default_font,
-                        left_alignment,
-                        thin_border,
-                    )
-                
+                    for sheet in net_rule_sheets.values():
+                        apply_styles(
+                            sheet,
+                            header_fill,
+                            header_font,
+                            default_font,
+                            left_alignment,
+                            thin_border,
+                        )
+                    # -------------------------------------------------------
+
                 # nat_rule_collectionだけ別のシートに出力
                 if nat_rule_collections:
-                    ws_natcol = wb.create_sheet(title=f"natcol_{sheet_title}")
-                    ws_natcolrule = wb.create_sheet(title=f"natrule_{sheet_title}")
+                    ws_natcol = wb.create_sheet(title=f"natcols")
                     # Add header row for nat_rule_collection sheet
                     ws_natcol.append(
                         [
@@ -444,22 +431,6 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                             "action",
                         ]
                     )
-                    ws_natcolrule.append(
-                        [
-                            "rule_index",
-                            "name",
-                            "description",
-                            "destination_address",
-                            "destination_ports",
-                            "protocols",
-                            "source_addresses",
-                            "source_ip_groups",
-                            "translated_address",
-                            "translated_fqdn",
-                            "translated_port",
-                        ]
-                    )
-
                     natcol_dict = defaultdict(dict)
                     natcolrule_dict = defaultdict(dict)
                     for nat_col in nat_rule_collections:
@@ -470,24 +441,16 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                             match = re.search(r"rule\[(\d+)\]", nat_col[0])
                             if match:
                                 nat_col_rule_index = match.group(1)
-                                if f"{nat_col_index}_{nat_col_rule_index}" in natcolrule_dict:
-                                    if nat_col_key in natcolrule_dict[f"{nat_col_index}_{nat_col_rule_index}"]:
-                                        natcolrule_dict[f"{nat_col_index}_{nat_col_rule_index}"][nat_col_key] = str(natcolrule_dict[f"{nat_col_index}_{nat_col_rule_index}"][nat_col_key]) + f"\n{nat_col[1]}"
-                                    else:
-                                        natcolrule_dict[f"{nat_col_index}_{nat_col_rule_index}"][nat_col_key] = nat_col[1]
+                                key = f"{nat_col_index}_{nat_col_rule_index}"
+                                if key in natcolrule_dict:
+                                    natcolrule_dict[key][nat_col_key] = str(natcolrule_dict[key].get(nat_col_key, "")) + f"\n{nat_col[1]}"
                                 else:
-                                    natcolrule_dict[f"{nat_col_index}_{nat_col_rule_index}"][nat_col_key] = nat_col[1]
-                            else:
-                                nat_col_rule_index = None
-
+                                    natcolrule_dict[key][nat_col_key] = nat_col[1]
                     # Sort nat_cols by priority
                     sorted_natcols = sorted(
                         natcol_dict.items(),
-                        key=lambda x: int(
-                            x[1].get("nat_rule_collection.priority", 0)
-                        ),
+                        key=lambda x: int(x[1].get("nat_rule_collection.priority", 0)),
                     )
-
                     for nat_col_index, nat_col_attrs in sorted_natcols:
                         row = [f"nat_rule_collection{nat_col_index}"]
                         for key in [
@@ -497,14 +460,30 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                         ]:
                             row.append(str(nat_col_attrs.get(key, "")))
                         ws_natcol.append(row)
-
-                    for (
-                        nat_col_rule_index,
-                        nat_col_rule_attrs,
-                    ) in natcolrule_dict.items():
-                        row = [
-                            f"nat_rule_collection.rule[{nat_col_rule_index}]"
-                        ]
+                    
+                    # ----- 変更箇所: nat_ruleシートを個別に作成する -----
+                    nat_rule_sheets = {}
+                    for nat_key, nat_attrs in natcolrule_dict.items():
+                        nat_col_index, nat_rule_index = nat_key.split("_", 1)
+                        if nat_col_index not in nat_rule_sheets:
+                            priority = natcol_dict[nat_col_index].get("nat_rule_collection.priority", "0")
+                            nat_rule_sheets[nat_col_index] = wb.create_sheet(title=f"natrules_{nat_col_index}_{priority}")
+                            nat_rule_sheets[nat_col_index].append(
+                                [
+                                    "rule_index",
+                                    "name",
+                                    "description",
+                                    "destination_address",
+                                    "destination_ports",
+                                    "protocols",
+                                    "source_addresses",
+                                    "source_ip_groups",
+                                    "translated_address",
+                                    "translated_fqdn",
+                                    "translated_port",
+                                ]
+                            )
+                        row = [f"nat_rule[{nat_key}]".strip()]
                         for key in [
                             "nat_rule_collection.rule.name",
                             "nat_rule_collection.rule.description",
@@ -517,10 +496,8 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                             "nat_rule_collection.rule.translated_fqdn",
                             "nat_rule_collection.rule.translated_port",
                         ]:
-                            row.append(str(nat_col_rule_attrs.get(key, "")))
-                        ws_natcolrule.append(row)
-
-                    # Apply styles to the new sheet
+                            row.append(str(nat_attrs.get(key, "")).strip())
+                        nat_rule_sheets[nat_col_index].append(row)
                     apply_styles(
                         ws_natcol,
                         header_fill,
@@ -529,14 +506,16 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                         left_alignment,
                         thin_border,
                     )
-                    apply_styles(                 
-                        ws_natcolrule,
-                        header_fill,
-                        header_font,
-                        default_font,
-                        left_alignment,
-                        thin_border,
-                    )
+                    for sheet in nat_rule_sheets.values():
+                        apply_styles(
+                            sheet,
+                            header_fill,
+                            header_font,
+                            default_font,
+                            left_alignment,
+                            thin_border,
+                        )
+                    # -------------------------------------------------------
 
                 for attribute in other_rule_collections:
                     attribute_path = attribute[0]
