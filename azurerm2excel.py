@@ -260,9 +260,8 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                         ap_col_index, ap_rule_index = rule_key.split("_", 1)
                         if ap_col_index not in app_rule_sheets:
                             # collectionのpriorityを取得してシート名に含める
-                            col_name = appcol_dict[ap_col_index].get("application_rule_collection.name", "")
                             priority = appcol_dict[ap_col_index].get("application_rule_collection.priority", "0")
-                            app_rule_sheets[ap_col_index] = wb.create_sheet(title=f"aprules_{ap_col_index}")
+                            app_rule_sheets[ap_col_index] = wb.create_sheet(title=f"aprules_{ap_col_index}_{priority}")
                             app_rule_sheets[ap_col_index].append(
                                 [
                                     "rule_Index",
