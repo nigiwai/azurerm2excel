@@ -210,9 +210,20 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                     # and "nat_rule_collection" not in attribute[0]
                 ]
 
+                for attribute in other_rule_collections:
+                    attribute_path = attribute[0]
+                    normalized_path = re.sub(r"\[\d+\]", "", attribute_path)
+                    description = descriptions.get(resource_type, {}).get(
+                        normalized_path, ""
+                    )
+                    value = str(attribute[1])
+                    ws.append([attribute[0], value, description])
+                    if attribute[0] == "priority":
+                        collection_group_priority = value
+
                 # application_rule_collectionだけ別のシートに出力
                 if application_rule_collections:
-                    ws_appcol = wb.create_sheet(title=f"apcols")
+                    ws_appcol = wb.create_sheet(title=f"apcols{collection_group_priority}")
                     # Add header row for collection sheet
                     ws_appcol.append(
                         [
@@ -320,10 +331,11 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                             left_alignment,
                             thin_border,
                         )
+                    # -------------------------------------------------------
 
                 # network_rule_collectionだけ別のシートに出力
                 if network_rule_collections:
-                    ws_netcol = wb.create_sheet(title=f"netcols")
+                    ws_netcol = wb.create_sheet(title=f"netcols{collection_group_priority}")
                     # Add header row for network_rule_collection sheet
                     ws_netcol.append(
                         [
@@ -420,7 +432,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
 
                 # nat_rule_collectionだけ別のシートに出力
                 if nat_rule_collections:
-                    ws_natcol = wb.create_sheet(title=f"natcols")
+                    ws_natcol = wb.create_sheet(title=f"natcols{collection_group_priority}")
                     # Add header row for nat_rule_collection sheet
                     ws_natcol.append(
                         [
@@ -515,15 +527,6 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                             thin_border,
                         )
                     # -------------------------------------------------------
-
-                for attribute in other_rule_collections:
-                    attribute_path = attribute[0]
-                    normalized_path = re.sub(r"\[\d+\]", "", attribute_path)
-                    description = descriptions.get(resource_type, {}).get(
-                        normalized_path, ""
-                    )
-                    value = str(attribute[1])
-                    ws.append([attribute[0], value, description])
 
             else:
                 for attribute in attribute_list:
