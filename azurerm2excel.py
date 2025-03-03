@@ -245,7 +245,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                         key=lambda x: int(x[1].get("application_rule_collection.priority", 0)),
                     )
                     for app_col_index, app_col_attrs in sorted_appcols:
-                        row = [f"application_rule_collection{app_col_index}"]
+                        row = [f"{sheet_title}:apcol{app_col_index}"]
                         for key in [
                             "application_rule_collection.name",
                             "application_rule_collection.priority",
@@ -261,7 +261,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                         if ap_col_index not in app_rule_sheets:
                             # collectionのpriorityを取得してシート名に含める
                             priority = appcol_dict[ap_col_index].get("application_rule_collection.priority", "0")
-                            app_rule_sheets[ap_col_index] = wb.create_sheet(title=f"aprules_{ap_col_index}_{priority}")
+                            app_rule_sheets[ap_col_index] = wb.create_sheet(title=f"apcol{priority}_rules")
                             app_rule_sheets[ap_col_index].append(
                                 [
                                     "rule_Index",
@@ -279,7 +279,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                                     "web_categories",
                                 ]
                             )
-                        row = [f"application_rule{rule_key}".strip()]
+                        row = [f"{sheet_title}:apcol{ap_col_index}:aprule{ap_rule_index}".strip()]
                         for key in [
                             "application_rule_collection.rule.name",
                             "application_rule_collection.rule.description",
@@ -323,7 +323,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
 
                 # network_rule_collectionだけ別のシートに出力
                 if network_rule_collections:
-                    ws_netcol = wb.create_sheet(title=f"nwcols")
+                    ws_netcol = wb.create_sheet(title=f"netcols")
                     # Add header row for network_rule_collection sheet
                     ws_netcol.append(
                         [
@@ -354,7 +354,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                         key=lambda x: int(x[1].get("network_rule_collection.priority", 0)),
                     )
                     for net_col_index, net_col_attrs in sorted_netcols:
-                        row = [f"network_rule_collection{net_col_index}"]
+                        row = [f"{sheet_title}:netcol{net_col_index}"]
                         for key in [
                             "network_rule_collection.name",
                             "network_rule_collection.priority",
@@ -369,7 +369,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                         net_col_index, net_rule_index = net_key.split("_", 1)
                         if net_col_index not in net_rule_sheets:
                             priority = netcol_dict[net_col_index].get("network_rule_collection.priority", "0")
-                            net_rule_sheets[net_col_index] = wb.create_sheet(title=f"nwrules_{net_col_index}_{priority}")
+                            net_rule_sheets[net_col_index] = wb.create_sheet(title=f"netcol{priority}_rules")
                             net_rule_sheets[net_col_index].append(
                                 [
                                     "rule_Index",
@@ -384,7 +384,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                                     "source_ip_groups",
                                 ]
                             )
-                        row = [f"network_rule{net_key}".strip()]
+                        row = [f"{sheet_title}:netcol{net_col_index}:netrule{net_rule_index}".strip()]
                         for key in [
                             "network_rule_collection.rule.name",
                             "network_rule_collection.rule.description",
@@ -451,7 +451,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                         key=lambda x: int(x[1].get("nat_rule_collection.priority", 0)),
                     )
                     for nat_col_index, nat_col_attrs in sorted_natcols:
-                        row = [f"nat_rule_collection{nat_col_index}"]
+                        row = [f"{sheet_title}:natcol{nat_col_index}"]
                         for key in [
                             "nat_rule_collection.name",
                             "nat_rule_collection.priority",
@@ -466,7 +466,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                         nat_col_index, nat_rule_index = nat_key.split("_", 1)
                         if nat_col_index not in nat_rule_sheets:
                             priority = natcol_dict[nat_col_index].get("nat_rule_collection.priority", "0")
-                            nat_rule_sheets[nat_col_index] = wb.create_sheet(title=f"natrules_{nat_col_index}_{priority}")
+                            nat_rule_sheets[nat_col_index] = wb.create_sheet(title=f"natcol{priority}_rules")
                             nat_rule_sheets[nat_col_index].append(
                                 [
                                     "rule_index",
@@ -482,7 +482,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                                     "translated_port",
                                 ]
                             )
-                        row = [f"nat_rule[{nat_key}]".strip()]
+                        row = [f"{sheet_title}:natcol{nat_col_index}:natrule{nat_rule_index}".strip()]
                         for key in [
                             "nat_rule_collection.rule.name",
                             "nat_rule_collection.rule.description",
