@@ -64,8 +64,11 @@ def apply_styles(
         column = col[0].column_letter
         for cell in col:
             try:
-                if len(str(cell.value)) > max_length:
-                    max_length = len(cell.value)
+                if cell.value is not None:
+                    lines = str(cell.value).splitlines()
+                    cell_max = max(len(line) for line in lines) if lines else 0
+                    if cell_max > max_length:
+                        max_length = cell_max
             except:
                 pass
         adjusted_width = max_length + 2
@@ -223,7 +226,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
 
                 # application_rule_collectionだけ別のシートに出力
                 if application_rule_collections:
-                    ws_appcol = wb.create_sheet(title=f"apcols{collection_group_priority}")
+                    ws_appcol = wb.create_sheet(title=f"apcols_{collection_group_priority}")
                     # Add header row for collection sheet
                     ws_appcol.append(
                         [
@@ -272,7 +275,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                         if ap_col_index not in app_rule_sheets:
                             # collectionのpriorityを取得してシート名に含める
                             priority = appcol_dict[ap_col_index].get("application_rule_collection.priority", "0")
-                            app_rule_sheets[ap_col_index] = wb.create_sheet(title=f"apcol{priority}_rules")
+                            app_rule_sheets[ap_col_index] = wb.create_sheet(title=f"apcol_{collection_group_priority}_{priority}_rules")
                             app_rule_sheets[ap_col_index].append(
                                 [
                                     "rule_Index",
@@ -335,7 +338,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
 
                 # network_rule_collectionだけ別のシートに出力
                 if network_rule_collections:
-                    ws_netcol = wb.create_sheet(title=f"netcols{collection_group_priority}")
+                    ws_netcol = wb.create_sheet(title=f"netcols_{collection_group_priority}")
                     # Add header row for network_rule_collection sheet
                     ws_netcol.append(
                         [
@@ -381,7 +384,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                         net_col_index, net_rule_index = net_key.split("_", 1)
                         if net_col_index not in net_rule_sheets:
                             priority = netcol_dict[net_col_index].get("network_rule_collection.priority", "0")
-                            net_rule_sheets[net_col_index] = wb.create_sheet(title=f"netcol{priority}_rules")
+                            net_rule_sheets[net_col_index] = wb.create_sheet(title=f"netcol_{collection_group_priority}_{priority}_rules")
                             net_rule_sheets[net_col_index].append(
                                 [
                                     "rule_Index",
@@ -432,7 +435,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
 
                 # nat_rule_collectionだけ別のシートに出力
                 if nat_rule_collections:
-                    ws_natcol = wb.create_sheet(title=f"natcols{collection_group_priority}")
+                    ws_natcol = wb.create_sheet(title=f"natcols_{collection_group_priority}")
                     # Add header row for nat_rule_collection sheet
                     ws_natcol.append(
                         [
@@ -478,7 +481,7 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
                         nat_col_index, nat_rule_index = nat_key.split("_", 1)
                         if nat_col_index not in nat_rule_sheets:
                             priority = natcol_dict[nat_col_index].get("nat_rule_collection.priority", "0")
-                            nat_rule_sheets[nat_col_index] = wb.create_sheet(title=f"natcol{priority}_rules")
+                            nat_rule_sheets[nat_col_index] = wb.create_sheet(title=f"natcol_{collection_group_priority}_{priority}_rules")
                             nat_rule_sheets[nat_col_index].append(
                                 [
                                     "rule_index",
@@ -563,14 +566,18 @@ def write_to_excel(resources_by_type, descriptions, output_folder):
             ws.column_dimensions["B"].width = 100  # Set width for Value column
             ws.column_dimensions["C"].width = 100  # Set width for Description column
 
+            # Adjust column widths for non-B,C columns
             for col in ws.columns:
                 max_length = 0
                 column = col[0].column_letter  # Get the column name
                 if column not in ["B", "C"]:  # Skip Value and Description columns
                     for cell in col:
                         try:
-                            if len(str(cell.value)) > max_length:
-                                max_length = len(cell.value)
+                            if cell.value is not None:
+                                lines = str(cell.value).splitlines()
+                                cell_max = max(len(line) for line in lines) if lines else 0
+                                if cell_max > max_length:
+                                    max_length = cell_max
                         except:
                             pass
                     adjusted_width = max_length + 2
