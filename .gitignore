@@ -1,0 +1,7 @@
+tfstate/
+venv/
+output/
+json/
+*.tfstate
+*.xlsx
+*.json
